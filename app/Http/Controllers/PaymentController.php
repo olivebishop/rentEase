@@ -5,20 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Payment;
 use App\Models\Room;
 use App\Models\Tenant;
-
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
-/**
- * Class PaymentController
- * @package App\Http\Controllers
- */
 class PaymentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
         $payments = Payment::paginate();
@@ -27,25 +18,14 @@ class PaymentController extends Controller
             ->with('i', (request()->input('page', 1) - 1) * $payments->perPage());
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
         $payment = new Payment();
         $rooms = Room::all();
-        $tenants =  Tenant::all();
-        return view('payment.create', compact('payment','tenants','rooms'));
+        $tenants = Tenant::all();
+        return view('payment.create', compact('payment', 'tenants', 'rooms'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
         request()->validate(Payment::$rules);
@@ -56,12 +36,6 @@ class PaymentController extends Controller
             ->with('success', 'Payment created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
         $payment = Payment::find($id);
@@ -69,12 +43,6 @@ class PaymentController extends Controller
         return view('payment.show', compact('payment'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int $id
-     * @return \Illuminate\Http\Response
-     */
     public function edit($id)
     {
         $payment = Payment::find($id);
@@ -82,13 +50,6 @@ class PaymentController extends Controller
         return view('payment.edit', compact('payment'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request $request
-     * @param  Payment $payment
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, Payment $payment)
     {
         request()->validate(Payment::$rules);
@@ -99,16 +60,43 @@ class PaymentController extends Controller
             ->with('success', 'Payment updated successfully');
     }
 
-    /**
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
-     * @throws \Exception
-     */
     public function destroy($id)
     {
         $payment = Payment::find($id)->delete();
 
         return redirect()->route('payments.index')
             ->with('success', 'Payment deleted successfully');
+    }
+
+    public function fetchPaymentFromPaystack()
+    {
+        // Replace 'YOUR_PAYSTACK_SECRET_KEY' with your actual Paystack secret key.
+        $paystackSecretKey = 'sk_live_80cae2d059bcab2663e6bfa9c3269da29df5f017';
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $paystackSecretKey,
+        ])->get('https://api.paystack.co/transaction');
+
+        if ($response->successful()) {
+            $transactions = $response->json();
+
+            // Calculate total payment amount from Paystack transactions and format it as needed.
+            $totalAmount = $this->calculateTotalAmount($transactions);
+
+            return view('payment.paystack', compact('transactions', 'totalAmount'));
+        } else {
+            return back()->with('error', 'Failed to fetch payment data from Paystack');
+        }
+    }
+
+    private function calculateTotalAmount($transactions)
+    {
+        $totalAmount = 0;
+
+        foreach ($transactions as $transaction) {
+            $totalAmount += $transaction['amount'] / 100; // Convert amount to the desired currency format
+        }
+
+        return $totalAmount;
     }
 }

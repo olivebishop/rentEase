@@ -25,6 +25,15 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::resource('/tenants',TenantController::class);
-Route::resource('/payments',PaymentController::class);
-Route::resource('/rooms',RoomController::class);
+Route::resource('/tenants', TenantController::class);
+Route::resource('/rooms', RoomController::class);
+
+// Add routes for payment-related actions
+Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
+Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
+Route::post('/payments/callback', [PaymentController::class, 'handlePaymentCallback'])->name('payments.callback');
+Route::get('/fetch-paystack-data', 'DashboardController@fetchPaymentDataFromPaystack');
+
+// Keep the existing resource route for viewing payments
+Route::resource('/payments', PaymentController::class);
+

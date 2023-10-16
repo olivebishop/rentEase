@@ -20,6 +20,7 @@ class TenantController extends Controller
     public function index()
     {
         $tenants = Tenant::paginate();
+        $tenantCount = Tenant::count();
 
         return view('tenant.index', compact('tenants'))
             ->with('i', (request()->input('page', 1) - 1) * $tenants->perPage());

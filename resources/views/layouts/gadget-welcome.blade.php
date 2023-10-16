@@ -21,11 +21,12 @@
         <div class="profile">
             <div class="profile__info">
                 <p>Hey, <b>{{ Auth::user()->name }}</b></p>
-                <small class="text-muted">Admin</small>
+                <small class="text-muted">{{ Auth::user()->role }}</small>
             </div>
             <div>
                 <img class="profile__photo" src="{{ asset('assets/images/profile-1.jpg') }}" alt="profile-picture">
             </div>
         </div>
+        
     </div>
 </div>

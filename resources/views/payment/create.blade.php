@@ -23,6 +23,11 @@
 
                             @include('payment.form')
 
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">
+                                    {{ __('Pay with Paystack') }}
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
